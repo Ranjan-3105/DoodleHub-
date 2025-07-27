@@ -21,3 +21,18 @@ This is my first work in monorepo and websocket implemetataion. prolly this is m
   },
 
 <!-- make sure to pnpm i and click on the hyperlink to check. -->
+
+6. make build start and dev scripts and include rootdir and outdir :
+
+//package.json
+{
+  "build": "tsc -b",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts"
+}
+
+//tsconfig
+"compilerOptions": {
+        "rootDir": "./src",
+        "outDir": "./dist"
+    }

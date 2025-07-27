@@ -36,3 +36,6 @@ yarn-error.log*
 # Misc
 .DS_Store
 *.pem
+
+# z_steps.md
+z_steps.md

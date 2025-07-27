@@ -36,3 +36,21 @@ This is my first work in monorepo and websocket implemetataion. prolly this is m
         "rootDir": "./src",
         "outDir": "./dist"
     }
+
+7. update the turbo-config in both the projects.
+
+//turbo.json
+"dev": {
+      "cache": false,
+      "persistent": true,
+      "dependsOn": ["^dev"]
+    },
+    "build": {
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": ["dist/**", "build/**"]
+    },
+    "start": {
+      "dependsOn": ["^build"],
+      "cache": false
+    }

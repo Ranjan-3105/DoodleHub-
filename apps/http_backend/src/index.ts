@@ -20,7 +20,7 @@ app.post("/signin", (req, res) => {
 app.post("/room", middleware, (req, res) => {
   //db call
   res.json({
-    roonId: 123123,
+    roomId: 123123,
   });
 });
 

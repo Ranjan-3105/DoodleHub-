@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import { JWT_SECRET } from "./config";
 
+
 export default function middleware(
   req: Request,
   res: Response,

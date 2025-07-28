@@ -10,6 +10,7 @@ It is also my **first major project**, and I’ve thoroughly documented all the 
 
 ```bash
 npm i -g pnpm
+```
 ````
 
 ---
@@ -20,9 +21,9 @@ npm i -g pnpm
 npx create-turbo@latest
 ```
 
-* Choose `pnpm` as the package manager.
-* Delete the unneeded `docs` directory.
-* Create two directories for the backend:
+- Choose `pnpm` as the package manager.
+- Delete the unneeded `docs` directory.
+- Create two directories for the backend:
 
 ```bash
 mkdir http_backend ws_backend
@@ -118,7 +119,7 @@ Do this inside both `http_backend/` and `ws_backend/`.
 
 ## 🔌 7. Boilerplate code for servers
 
-**http\_backend/src/index.ts**
+**http_backend/src/index.ts**
 
 ```ts
 import express from "express";
@@ -128,7 +129,7 @@ const app = express();
 app.listen(3001); // make sure to use a different port for each
 ```
 
-**ws\_backend/src/index.ts**
+**ws_backend/src/index.ts**
 
 ```ts
 import { WebSocketServer } from "ws";
@@ -199,3 +200,52 @@ export default function middleware(
 
 > You will need to fix the type error in Express:
 > `req.userId = decoded.userId` is not recognized unless you extend the Request type.
+
+10. gate create room endpoint
+    const userId = 1;
+    const token = jwt.sign({ userId }, JWT_SECRET);
+    res.json({ token });
+
+11.gate WebSocket server using token
+const url = request.url; // ws://localhost:3000?token=123123
+if (!url) {
+return;
+}
+const queryParam = new URLSearchParams(url.split("?")[1]);
+// => ["ws://localhost:3000", "token=123123"] => queryParam = "token=123123"
+const token = queryParam.get("token") || "";
+const decoded = jwt.verify(token,JWT_SECRET);
+if( !decoded || !(decoded as JwtPayload).userId ) {
+ws.close();
+return;
+}
+
+12.create a backend common {add npm init -y , tsconfig.json,  dev dependencies update, JWT_SECRET in src/index.ts , add export in package.json}
+//package.json
+"exports": {
+    "./config": "./src/index.ts"
+  },
+
+13. Create a common zod Schema{ npm init -y , pnpm add zod  , add tsconfig , add to devDependencies, write the zod schema in src/types.ts and add a export in packages.}
+//types.ts
+import { z } from "zod";
+
+export const CreateUserSchema = z.object({
+    username : z.string().min(3).max(20),
+    password: z.string(),
+    name: z.string
+})
+
+export const SignInSchema = z.object({
+    username : z.string().min(3).max(20),
+    password: z.string()
+})
+
+export const CreateRoomSchema = z.object({
+    name: z.string().min(3).max(20)
+})
+
+// package.json
+"exports": {
+    "./types": "./src/types.ts"
+  },

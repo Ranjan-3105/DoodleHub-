@@ -1,5 +1,3 @@
----
-
 ````markdown
 # 🧩 DoodleHub
 
@@ -12,7 +10,7 @@ It is also my **first major project**, and I’ve thoroughly documented all the 
 
 ```bash
 npm i -g pnpm
-```
+````
 
 ---
 
@@ -22,9 +20,9 @@ npm i -g pnpm
 npx create-turbo@latest
 ```
 
-- Choose `pnpm` as the package manager.
-- Delete the unneeded `docs` directory.
-- Create two directories for the backend:
+* Choose `pnpm` as the package manager.
+* Delete the unneeded `docs` directory.
+* Create two directories for the backend:
 
 ```bash
 mkdir http_backend ws_backend
@@ -118,9 +116,9 @@ Do this inside both `http_backend/` and `ws_backend/`.
 
 ---
 
-## 🔌 7. Initialize the http and WebSocket Servers
+## 🔌 7. Boilerplate code for servers
 
-**http_backend/src/index.ts**
+**http\_backend/src/index.ts**
 
 ```ts
 import express from "express";
@@ -130,14 +128,14 @@ const app = express();
 app.listen(3001); // make sure to use a different port for each
 ```
 
-**ws_backend/src/index.ts**
+**ws\_backend/src/index.ts**
 
 ```ts
 import { WebSocketServer } from "ws";
 
 const wss = new WebSocketServer({ port: 3000 });
 
-wss.on("connection", function connection(ws, request) {
+wss.on("connection", function connection(ws) {
   ws.on("message", function message(msg) {
     console.log("received: %s", msg);
     ws.send("pong");
@@ -201,23 +199,3 @@ export default function middleware(
 
 > You will need to fix the type error in Express:
 > `req.userId = decoded.userId` is not recognized unless you extend the Request type.
-
-```
-
----
-
-10. Then to extract a queryParameter we use the following chunk of code:
-// ws/index.ts
- const url = request.url; // ws://localhost:3000?token=123123
-  if (!url) {
-    return;
-  }
-  const queryParam = new URLSearchParams(url.split("?")[1]);
-  // => ["ws://localhost:3000", "token=123123"] => queryParam = "token=123123"
-  const token = queryParam.get("token");
-
-11.  gate the HTTP servers
-12.  gate the ws servers
-13.Create a DB package
-14. use the DB package in the HTTP layer.
-```

@@ -248,4 +248,45 @@ export const CreateRoomSchema = z.object({
 // package.json
 "exports": {
     "./types": "./src/types.ts"
-  },
+  }
+
+  14. import zod schema in http backend as a gatepoint ( for all CreateUserSchema , SignInSchema , CreateRoomSchema ) eg:
+  const data = CreateUserSchema.safeParse(req.body);
+  if( !data ) {
+    res.json({
+      "message" : "incorrect credentials"
+    })
+    return;
+  }
+
+  15. Add DB 
+  create db dir -> npm init -y -> create tsconfig.json -> complete extend and adding depemndencies -> pnpm install prisma -> npx prisma init -> this creates a schema.prisma file -> make a schema table for user chat and room for eg :
+
+model User {
+  id       String @id @default(uuid())
+  email    String
+  password String
+  name     String
+  photo    String
+  rooms    Room[]
+  chat     Chat[]
+}
+
+model Room {
+  id        Int      @id @default(autoincrement())
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  adminId   String
+  admin     User     @relation(fields: [adminId] , references: [id])
+  chats     Chat[]
+}
+
+model Chat {
+  id      Int    @id @default(autoincrement())
+  roomId  Int
+  message String
+  userId  String
+  room    Room      @relation(fields: [roomId] , references: [id])
+  user    User      @relation(fields: [userId] , references: [id])
+}
+

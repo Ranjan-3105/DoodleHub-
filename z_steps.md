@@ -65,7 +65,7 @@ Do this inside both `http_backend/` and `ws_backend/`.
 
 ---
 
-## 🔧 5. Add scripts and compiler options
+## 🔧 5. Add scripts and compiler options in both (build, dev , start)
 
 **package.json**
 
@@ -220,13 +220,15 @@ ws.close();
 return;
 }
 
-12.create a backend common {add npm init -y , tsconfig.json,  dev dependencies update, JWT_SECRET in src/index.ts , add export in package.json}
+12.create a backend common(JWT) {add npm init -y , tsconfig.json,  dev dependencies update, JWT_SECRET in src/index.ts , add export in package.json}
 //package.json
 "exports": {
     "./config": "./src/index.ts"
   },
 
-13. Create a common zod Schema{ npm init -y , pnpm add zod  , add tsconfig , add to devDependencies, write the zod schema in src/types.ts and add a export in packages.}
+13. Create a common zod Schema(for both http and ws backend) { 
+  npm init -y , pnpm add zod  , add tsconfig , add to devDependencies, write the zod schema in src/types.ts and add a export in packages.
+  }
 //types.ts
 import { z } from "zod";
 
@@ -290,3 +292,16 @@ model Chat {
   user    User      @relation(fields: [userId] , references: [id])
 }
 
+16. make a db in local or from the internet for ease of access we are using neon for now best bet is to make it local.
+ make a neon project copy the given url paste it in the .env file -> write these commands in the terminal:
+>>> npx prisma migrate dev --name init_schema    // this will make the table as describes in the schema.prisma in the neon db
+>>> npx prisma generate                          // this will import a @client which is used to import it into http backend.
+
+17. Using the DB package in the db layer 
+ in package.json in db add exports:
+  "exports" : {
+   "./client" : "./src/index.ts"
+  },
+ in http package add dependencies of db  
+
+ 18. complete http backend

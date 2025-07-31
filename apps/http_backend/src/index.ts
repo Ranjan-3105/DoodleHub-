@@ -2,32 +2,48 @@ import express from "express";
 import jwt from "jsonwebtoken";
 import { JWT_SECRET } from "@repo/backend-common/config";
 import middleware from "./middleware";
-import { CreateUserSchema, SignInSchema, CreateRoomSchema } from "@repo/common/types"
+import {
+  CreateUserSchema,
+  SignInSchema,
+  CreateRoomSchema,
+} from "@repo/common/types";
+import { prismaClient } from "@repo/db/client";
 
 const app = express();
+app.use(express.json());
 
-app.post("/signup", (req, res) => {
-
-  const data = CreateUserSchema.safeParse(req.body);
-  if( !data ) {
+app.post("/signup", async (req, res) => {
+  const parsedData = CreateUserSchema.safeParse(req.body);
+  if (!parsedData.success) {
     res.json({
-      "message" : "incorrect credentials"
-    })
+      message: "incorrect credentials",
+    });
     return;
   }
 
-  res.json({
-    userId: "123",
-  });
+  try {
+    const user = await prismaClient.user.create({
+      data: {
+        email: parsedData.data?.username,
+        password: parsedData.data.password,
+        name: parsedData.data.name,
+      },
+    });
+    res.json({
+      userId: user.id,
+    });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ message: "Could not create user" });
+  }
 });
 
 app.post("/signin", (req, res) => {
-
   const data = SignInSchema.safeParse(req.body);
-  if( !data ) {
+  if (!data) {
     res.json({
-      "message" : "incorrect credentials"
-    })
+      message: "incorrect credentials",
+    });
     return;
   }
 
@@ -37,12 +53,11 @@ app.post("/signin", (req, res) => {
 });
 
 app.post("/room", middleware, (req, res) => {
-
   const data = CreateRoomSchema.safeParse(req.body);
-  if( !data ) {
+  if (!data) {
     res.json({
-      "message" : "incorrect credentials"
-    })
+      message: "incorrect credentials",
+    });
     return;
   }
 

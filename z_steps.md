@@ -198,7 +198,6 @@ export default function middleware(
 }
 ```
 
-```md
 > You will need to fix the type error in Express:
 > `req.userId = decoded.userId` is not recognized unless you extend the Request type.
 ```
@@ -449,5 +448,4 @@ if (parsedData.type === "chat") {
 }
 ```
 
-## Backend Completes here !
-
+## Backend Completes here!

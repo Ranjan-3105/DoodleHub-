@@ -198,169 +198,256 @@ export default function middleware(
 }
 ```
 
+```md
 > You will need to fix the type error in Express:
 > `req.userId = decoded.userId` is not recognized unless you extend the Request type.
+```
 
-10. gate create room endpoint
-    const userId = 1;
-    const token = jwt.sign({ userId }, JWT_SECRET);
-    res.json({ token });
+### 10. Gate Create Room Endpoint
 
-11.gate WebSocket server using token
+```ts
+const userId = 1;
+const token = jwt.sign({ userId }, JWT_SECRET);
+res.json({ token });
+```
+
+### 11. Gate WebSocket Server Using Token
+
+```ts
 const url = request.url; // ws://localhost:3000?token=123123
 if (!url) {
-return;
+  return;
 }
 const queryParam = new URLSearchParams(url.split("?")[1]);
-// => ["ws://localhost:3000", "token=123123"] => queryParam = "token=123123"
 const token = queryParam.get("token") || "";
-const decoded = jwt.verify(token,JWT_SECRET);
-if( !decoded || !(decoded as JwtPayload).userId ) {
-ws.close();
-return;
+const decoded = jwt.verify(token, JWT_SECRET);
+if (!decoded || !(decoded as JwtPayload).userId) {
+  ws.close();
+  return;
 }
+```
 
-12.create a backend common(JWT) {add npm init -y , tsconfig.json, dev dependencies update, JWT_SECRET in src/index.ts , add export in package.json}
-//package.json
-"exports": {
-"./config": "./src/index.ts"
-},
+### 12. Create a Backend Common (JWT)
 
-13. Create a common zod Schema(for both http and ws backend) {
-    npm init -y , pnpm add zod , add tsconfig , add to devDependencies, write the zod schema in src/types.ts and add a export in packages.
-    }
-    //types.ts
-    import { z } from "zod";
+* `npm init -y`
+* Add `tsconfig.json`
+* Add dev dependencies
+* Add `JWT_SECRET` in `src/index.ts`
 
-export const CreateUserSchema = z.object({
-username : z.string().min(3).max(20),
-password: z.string(),
-name: z.string
-})
-
-export const SignInSchema = z.object({
-username : z.string().min(3).max(20),
-password: z.string()
-})
-
-export const CreateRoomSchema = z.object({
-name: z.string().min(3).max(20)
-})
-
+```ts
 // package.json
 "exports": {
-"./types": "./src/types.ts"
+  "./config": "./src/index.ts"
 }
+```
 
-14. import zod schema in http backend as a gatepoint ( for all CreateUserSchema , SignInSchema , CreateRoomSchema ) eg:
-    const data = CreateUserSchema.safeParse(req.body);
-    if( !data ) {
-    res.json({
-    "message" : "incorrect credentials"
-    })
-    return;
-    }
+### 13. Create a Common Zod Schema (for both HTTP and WS backend)
 
-15. Add DB
-    create db dir -> npm init -y -> create tsconfig.json -> complete extend and adding depemndencies -> pnpm install prisma -> npx prisma init -> this creates a schema.prisma file -> make a schema table for user chat and room for eg :
+* `npm init -y`
+* `pnpm add zod`
+* Add `tsconfig.json`
+* Add to `devDependencies`
 
+```ts
+// types.ts
+import { z } from "zod";
+
+export const CreateUserSchema = z.object({
+  username: z.string().min(3).max(20),
+  password: z.string(),
+  name: z.string
+});
+
+export const SignInSchema = z.object({
+  username: z.string().min(3).max(20),
+  password: z.string()
+});
+
+export const CreateRoomSchema = z.object({
+  name: z.string().min(3).max(20)
+});
+```
+
+```ts
+// package.json
+"exports": {
+  "./types": "./src/types.ts"
+}
+```
+
+### 14. Import Zod Schema in HTTP Backend as a Gatepoint
+
+```ts
+const data = CreateUserSchema.safeParse(req.body);
+if (!data) {
+  res.json({
+    "message": "incorrect credentials"
+  });
+  return;
+}
+```
+
+### 15. Add DB
+
+* Create `db` dir
+* `npm init -y`
+* Create `tsconfig.json`
+* Add dependencies
+* `pnpm install prisma`
+* `npx prisma init`
+
+```prisma
+// schema.prisma
 model User {
-id String @id @default(uuid())
-email String
-password String
-name String
-photo String
-rooms Room[]
-chat Chat[]
+  id      String @id @default(uuid())
+  email   String
+  password String
+  name     String
+  photo    String
+  rooms    Room[]
+  chat     Chat[]
 }
 
 model Room {
-id Int @id @default(autoincrement())
-slug String @unique
-createdAt DateTime @default(now())
-adminId String
-admin User @relation(fields: [adminId] , references: [id])
-chats Chat[]
+  id        Int @id @default(autoincrement())
+  slug      String @unique
+  createdAt DateTime @default(now())
+  adminId   String
+  admin     User @relation(fields: [adminId], references: [id])
+  chats     Chat[]
 }
 
 model Chat {
-id Int @id @default(autoincrement())
-roomId Int
-message String
-userId String
-room Room @relation(fields: [roomId] , references: [id])
-user User @relation(fields: [userId] , references: [id])
+  id      Int @id @default(autoincrement())
+  roomId  Int
+  message String
+  userId  String
+  room    Room @relation(fields: [roomId], references: [id])
+  user    User @relation(fields: [userId], references: [id])
+}
+```
+
+### 16. Setup Neon DB or Local
+
+```sh
+npx prisma migrate dev --name init_schema
+npx prisma generate
+```
+
+### 17. Using the DB Package
+
+```ts
+// package.json in db
+"exports": {
+  "./client": "./src/index.ts"
+}
+```
+
+* Add db dependency in http package
+
+### 18. Complete HTTP Backend
+
+* Add DB calls to endpoints
+* Regularly generate schema
+
+### 19. Fix Prisma Module Error
+
+```sh
+# Remove migrated/generated directories
+npx prisma migrate dev --name init_schema
+pnpm i .
+```
+
+### 20. TypeScript Error
+
+```ts
+// @ts-ignore: TODO: Fix this
+```
+
+---
+
+### 21. **Most Important Part: The WS Server**
+
+* Clean the code
+* Make a stateful backend using:
+
+  * Brute-force array/object
+  * Redux toolkit (complex but optimal)
+  * Singleton (better alternative)
+
+```ts
+interface User {
+  userId: string;
+  rooms: string[];
+  ws: WebSocket;
 }
 
-16. make a db in local or from the internet for ease of access we are using neon for now best bet is to make it local.
-    make a neon project copy the given url paste it in the .env file -> write these commands in the terminal:
+const users: User[] = [];
+```
 
-    > > > npx prisma migrate dev --name init_schema // this will make the table as describes in the schema.prisma in the neon db
-    > > > npx prisma generate // this will import a @client which is used to import it into http backend.
+#### Sample `users` Array
 
-17. Using the DB package in the db layer
-    in package.json in db add exports:
-    "exports" : {
-    "./client" : "./src/index.ts"
+```ts
+[
+  { userId: "123123", room: ["room1", "room2"], ws: socket },
+  { userId: "234234", room: ["room1"], ws: socket }
+]
+```
+
+#### On Message Handling
+
+```ts
+// Sample message
+{ type: "join_room", roomId: 2 }
+```
+
+##### Join Room
+
+```ts
+if (parsedData.type === "join_room") {
+  const user = users.find((user) => user.ws === ws);
+  user?.rooms.push(parsedData.roomId);
+}
+```
+
+##### Leave Room
+
+```ts
+if (parsedData.type === "leave_room") {
+  const user = users.find((user) => user.ws === ws);
+  if (!user) return;
+  user.rooms = user.rooms.filter((roomId) => roomId !== parsedData.roomId);
+}
+```
+
+##### Chat
+
+```ts
+if (parsedData.type === "chat") {
+  const roomId = parsedData.roomId;
+  const message = parsedData.message;
+
+  await prismaClient.chat.create({
+    data: {
+      userId,
+      message,
+      roomId,
     },
-    in http package add dependencies of db
+  });
 
-18. complete http backend
-    add DB calls to endpoints and remember to generate schema regularly...
-    issues faced :
-19. module not found error in @prisma/client :
-    remove your migrated and generated dir and re migrate it from the schema.prisma -> npx prisma migrate dev --name init_schema
-    -> THEN in root dir : pnpm i .
-20. typescript error : ADD this -> // @ts-ignore: TODO: Fix this
-
-21. **_Most Important Part : THE WS SERVER_**
-
-~ make the code a lil cleaner.
-~ we need to make a stateful backend . as we need a variable to determine the call.
-~ There are three approaches we can follow : - use a array/object of string which is basically the bruteforce way of doing so. - use redux toolkit. { this is the most optimal case, but this makes the code much complex } - use singletons { another better approach }.
-~ made an user interface which has { userId, rooms, ws } -> then create a user array which is a array of user. On connection push the user into users array.
-    >>> sample users array : [{userId : "123123", room : [room1 , room2], ws : socket }, 
-                              {userId : "234234", room : [room1 ], ws : socket } ]
-~ as the "on connection" part is finished now we make the "on message" endpoint.
-    >>> sample message : { type : "join_room", roomId ; 2 }
-~ on message the type can be either "join" "leave" or "chat" so make three endpoints for the same
-    code eg :
-    if (parsedData.type === "join_room") {
-      // { type : "join_room", roomId : 1 }
-      const user = users.find((user) => user.ws === ws);
-      user?.rooms.push(parsedData.roomId);
-      // when an user sends a join room req we find the user and then pass the roomId on the message to his rooms array
-    }
-    if (parsedData.type === "leave_room") {
-      // { type : "leave_room", roomId : 1 }
-      const user = users.find((user) => user.ws === ws);
-      if (!user) return;
-      user.rooms = user.rooms.filter((roomId) => roomId !== parsedData.roomId);
-      // when an user sends a leave room req we find the user and then filter the roomId on the message to his rooms array.
-    }
-    if (parsedData.type === "chat") {
-      // { type : "chat", message : "hello!", roomId : 1 }
-      const roomId = parsedData.roomId;
-      const message = parsedData.message;
-
-      await prismaClient.chat.create({
-        data: {
-          userId,
-          message,
+  users.forEach((user) => {
+    if (user.rooms.includes(roomId)) {
+      user.ws.send(
+        JSON.stringify({
+          type: "chat",
+          message: message,
           roomId,
-        },
-      });
-
-      users.forEach((user) => {
-        if (user.rooms.includes(roomId))
-          user.ws.send(
-            JSON.stringify({
-              type: "chat",
-              message: message,
-              roomId,
-            })
-          );
-      });
+        })
+      );
     }
-  ~now the basic backend is complete though it is a uglier and bruteforce way to do it. you can always use singlketon or redux to make it more efficient.  
-  
+  });
+}
+```
+
+## Backend Completes here !
+

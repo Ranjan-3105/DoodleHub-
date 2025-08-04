@@ -220,88 +220,107 @@ ws.close();
 return;
 }
 
-12.create a backend common(JWT) {add npm init -y , tsconfig.json,  dev dependencies update, JWT_SECRET in src/index.ts , add export in package.json}
+12.create a backend common(JWT) {add npm init -y , tsconfig.json, dev dependencies update, JWT_SECRET in src/index.ts , add export in package.json}
 //package.json
 "exports": {
-    "./config": "./src/index.ts"
-  },
+"./config": "./src/index.ts"
+},
 
-13. Create a common zod Schema(for both http and ws backend) { 
-  npm init -y , pnpm add zod  , add tsconfig , add to devDependencies, write the zod schema in src/types.ts and add a export in packages.
-  }
-//types.ts
-import { z } from "zod";
+13. Create a common zod Schema(for both http and ws backend) {
+    npm init -y , pnpm add zod , add tsconfig , add to devDependencies, write the zod schema in src/types.ts and add a export in packages.
+    }
+    //types.ts
+    import { z } from "zod";
 
 export const CreateUserSchema = z.object({
-    username : z.string().min(3).max(20),
-    password: z.string(),
-    name: z.string
+username : z.string().min(3).max(20),
+password: z.string(),
+name: z.string
 })
 
 export const SignInSchema = z.object({
-    username : z.string().min(3).max(20),
-    password: z.string()
+username : z.string().min(3).max(20),
+password: z.string()
 })
 
 export const CreateRoomSchema = z.object({
-    name: z.string().min(3).max(20)
+name: z.string().min(3).max(20)
 })
 
 // package.json
 "exports": {
-    "./types": "./src/types.ts"
-  }
+"./types": "./src/types.ts"
+}
 
-  14. import zod schema in http backend as a gatepoint ( for all CreateUserSchema , SignInSchema , CreateRoomSchema ) eg:
-  const data = CreateUserSchema.safeParse(req.body);
-  if( !data ) {
+14. import zod schema in http backend as a gatepoint ( for all CreateUserSchema , SignInSchema , CreateRoomSchema ) eg:
+    const data = CreateUserSchema.safeParse(req.body);
+    if( !data ) {
     res.json({
-      "message" : "incorrect credentials"
+    "message" : "incorrect credentials"
     })
     return;
-  }
+    }
 
-  15. Add DB 
-  create db dir -> npm init -y -> create tsconfig.json -> complete extend and adding depemndencies -> pnpm install prisma -> npx prisma init -> this creates a schema.prisma file -> make a schema table for user chat and room for eg :
+15. Add DB
+    create db dir -> npm init -y -> create tsconfig.json -> complete extend and adding depemndencies -> pnpm install prisma -> npx prisma init -> this creates a schema.prisma file -> make a schema table for user chat and room for eg :
 
 model User {
-  id       String @id @default(uuid())
-  email    String
-  password String
-  name     String
-  photo    String
-  rooms    Room[]
-  chat     Chat[]
+id String @id @default(uuid())
+email String
+password String
+name String
+photo String
+rooms Room[]
+chat Chat[]
 }
 
 model Room {
-  id        Int      @id @default(autoincrement())
-  slug      String   @unique
-  createdAt DateTime @default(now())
-  adminId   String
-  admin     User     @relation(fields: [adminId] , references: [id])
-  chats     Chat[]
+id Int @id @default(autoincrement())
+slug String @unique
+createdAt DateTime @default(now())
+adminId String
+admin User @relation(fields: [adminId] , references: [id])
+chats Chat[]
 }
 
 model Chat {
-  id      Int    @id @default(autoincrement())
-  roomId  Int
-  message String
-  userId  String
-  room    Room      @relation(fields: [roomId] , references: [id])
-  user    User      @relation(fields: [userId] , references: [id])
+id Int @id @default(autoincrement())
+roomId Int
+message String
+userId String
+room Room @relation(fields: [roomId] , references: [id])
+user User @relation(fields: [userId] , references: [id])
 }
 
 16. make a db in local or from the internet for ease of access we are using neon for now best bet is to make it local.
- make a neon project copy the given url paste it in the .env file -> write these commands in the terminal:
->>> npx prisma migrate dev --name init_schema    // this will make the table as describes in the schema.prisma in the neon db
->>> npx prisma generate                          // this will import a @client which is used to import it into http backend.
+    make a neon project copy the given url paste it in the .env file -> write these commands in the terminal:
 
-17. Using the DB package in the db layer 
- in package.json in db add exports:
-  "exports" : {
-   "./client" : "./src/index.ts"
-  },
- in http package add dependencies of db  
+    > > > npx prisma migrate dev --name init_schema // this will make the table as describes in the schema.prisma in the neon db
+    > > > npx prisma generate // this will import a @client which is used to import it into http backend.
 
- 18. complete http backend
+17. Using the DB package in the db layer
+    in package.json in db add exports:
+    "exports" : {
+    "./client" : "./src/index.ts"
+    },
+    in http package add dependencies of db
+
+18. complete http backend
+    add DB calls to endpoints and remember to generate schema regularly...
+    issues faced :
+19. module not found error in @prisma/client :
+    remove your migrated and generated dir and re migrate it from the schema.prisma -> npx prisma migrate dev --name init_schema
+    -> THEN in root dir : pnpm i .
+20. typescript error : ADD this -> // @ts-ignore: TODO: Fix this
+
+21. **_Most Important Part : THE WS SERVER_**
+
+~ make the code a lil cleaner.
+~ we need to make a stateful backend . as we need a variable to determine the call.
+~ There are three approaches we can follow : - use a array/object of string which is basically the bruteforce way of doing so. - use redux toolkit. { this is the most optimal case, but this makes the code much complex } - use singletons { another better approach }.
+~ made an user interface which has { userId, rooms, ws } -> then create a user array which is a array of user. On connection push the user into users array.
+    >>> sample users array : [{userId : "123123", room : [room1 , room2], ws : socket }, 
+                              {userId : "234234", room : [room1 ], ws : socket } ]
+~ as the "on connection" part is finished now we make the "on message" endpoint.
+    >>> sample message : { type : "join_room", roomId ; 2 }
+~

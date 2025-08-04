@@ -323,4 +323,44 @@ user User @relation(fields: [userId] , references: [id])
                               {userId : "234234", room : [room1 ], ws : socket } ]
 ~ as the "on connection" part is finished now we make the "on message" endpoint.
     >>> sample message : { type : "join_room", roomId ; 2 }
-~
+~ on message the type can be either "join" "leave" or "chat" so make three endpoints for the same
+    code eg :
+    if (parsedData.type === "join_room") {
+      // { type : "join_room", roomId : 1 }
+      const user = users.find((user) => user.ws === ws);
+      user?.rooms.push(parsedData.roomId);
+      // when an user sends a join room req we find the user and then pass the roomId on the message to his rooms array
+    }
+    if (parsedData.type === "leave_room") {
+      // { type : "leave_room", roomId : 1 }
+      const user = users.find((user) => user.ws === ws);
+      if (!user) return;
+      user.rooms = user.rooms.filter((roomId) => roomId !== parsedData.roomId);
+      // when an user sends a leave room req we find the user and then filter the roomId on the message to his rooms array.
+    }
+    if (parsedData.type === "chat") {
+      // { type : "chat", message : "hello!", roomId : 1 }
+      const roomId = parsedData.roomId;
+      const message = parsedData.message;
+
+      await prismaClient.chat.create({
+        data: {
+          userId,
+          message,
+          roomId,
+        },
+      });
+
+      users.forEach((user) => {
+        if (user.rooms.includes(roomId))
+          user.ws.send(
+            JSON.stringify({
+              type: "chat",
+              message: message,
+              roomId,
+            })
+          );
+      });
+    }
+  ~now the basic backend is complete though it is a uglier and bruteforce way to do it. you can always use singlketon or redux to make it more efficient.  
+  

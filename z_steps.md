@@ -197,7 +197,7 @@ export default function middleware(
   }
 }
 ```
-
+```md
 > You will need to fix the type error in Express:
 > `req.userId = decoded.userId` is not recognized unless you extend the Request type.
 ```
@@ -447,5 +447,28 @@ if (parsedData.type === "chat") {
   });
 }
 ```
+## Backend Completes here !
 
-## Backend Completes here!
+
+## Start of frontend...
+
+1. frst running the app is itself a issue in turborepo . { dont use turbopack instead use webpack } {other fixes : move the root folder to main C:/ drive
+, move it to a mac/unix based system. }
+
+2. remove all the unnecesary codes and start your journey now...
+
+3. here i am using usestate hook but it is better to use the react hook form as it is lightweight and efficient to re-render. { Future Upgrade }
+
+4. 
+
+
+
+
+
+
+
+## future upgrade list :
+ ~ react hook form 
+ ~ reduux in backend or singleton 
+ ~ manage type error in middleware.ts 
+ ~ make frontend cleaner and appealing .
